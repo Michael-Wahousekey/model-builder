@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: model-aggregation-job
+
+spec:
+  template:
+    spec:
+      containers:
+      - name: model-aggregation
+        image: mikewahousekey/ml-python-snapshot:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            python /scripts/aggregate_models.py /models/  # Aggregate models
+
+        volumeMounts:
+        - mountPath: /scripts
+          name: script-volume  # Mount the aggregation script from ConfigMap
+        - mountPath: /models
+          name: model-volume  # Mount the PVC to access models
+
+      volumes:
+      - name: script-volume
+        configMap:
+          name: scripts  # ConfigMap for aggregate_models.py
+          
+      - name: model-volume
+        persistentVolumeClaim:
+          claimName: model-pvc  # PVC to access models from Job 1
