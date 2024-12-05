@@ -13,28 +13,29 @@ spec:
       - name: model-training
         image: mikewahousekey/ml-python-snapshot:latest
 
-        # tail -f /dev/null
         # Code used for deploying
         command:
           - /bin/sh
           - -c
+            # python /script/randomforest.py  # Run training script
+            # cp model.pkl /models/model_${HOSTNAME}.pkl  # Save model to PVC
           - |
-            python /script/randomforest.py  # Run training script
-            cp model.pkl /models/model_${HOSTNAME}.pkl  # Save model to PVC
+            tail -f /dev/null
+
 
         volumeMounts:
         - mountPath: /script
-          name: script-volume  # Mount the randomforest.py script from ConfigMap
+          name: script-volume             # Mount script from ConfigMap
         - mountPath: /models
-          name: model-volume  # Mount the PVC to save models
+          name: model-volume              # Mount the PVC to save models
 
-      volumes:
+      volumes:                            # Access to script folder
       - name: script-volume
         configMap:
-          name: script-volume  # ConfigMap for randomforest.py
+          name: script-volume 
 
-      - name: model-volume
+      - name: model-volume                # PVC to store models
         persistentVolumeClaim:
-          claimName: model-pvc  # PVC to store models
+          claimName: model-pvc
 
       restartPolicy: OnFailure

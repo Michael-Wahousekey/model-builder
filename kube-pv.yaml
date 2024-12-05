@@ -6,12 +6,12 @@ metadata:
   
 spec:
   capacity:
-    storage: 1Gi  # Storage size
+    storage: 1Gi      # Storage size
   volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /mnt/wsl/models  # Local directory on the node (adjust as needed)
-    type: DirectoryOrCreate
+    path: /mnt/wsl/models
+    type: DirectoryOrCreate     # Create a directory if it does not exist

@@ -12,20 +12,36 @@ spec:
         command:
           - /bin/sh
           - -c
+            # python /scripts/aggregate_models.py /models/  # Aggregate models
+
+            # change to secrets later so you dont expose the username and password
           - |
-            python /scripts/aggregate_models.py /models/  # Aggregate models
+            apt-get update && \
+            apt-get install curl -y && \
+
+          # This is to install client for console not server
+            curl -O https://dl.min.io/client/mc/release/linux-amd64/mc && \
+            chmod +x mc && \
+            mv mc /usr/local/bin/ && \
+          # Put this in secrets when pushing to github
+            mc alias set myminio http://minio-service:9000 minioadmin minioadmin && \
+
+          # Turn this off since this is not deployment and just uploading the best model file
+            tail -f /dev/null
 
         volumeMounts:
         - mountPath: /scripts
-          name: script-volume  # Mount the aggregation script from ConfigMap
+          name: script-volume             # Mount script from ConfigMap
         - mountPath: /models
-          name: model-volume  # Mount the PVC to access models
+          name: model-volume              # Mount the PVC to access models
 
-      volumes:
-      - name: script-volume
+      volumes:                            
+      - name: script-volume               # Access for script folder
         configMap:
-          name: scripts  # ConfigMap for aggregate_models.py
+          name: script-volume
           
-      - name: model-volume
+      - name: model-volume                # PVC to access to models
         persistentVolumeClaim:
-          claimName: model-pvc  # PVC to access models from Job 1
+          claimName: model-pvc
+
+      restartPolicy: OnFailure
