@@ -3,6 +3,7 @@ import os
 from sklearn.datasets import fetch_california_housing
 from sklearn.metrics import mean_squared_error, r2_score
 import sys
+import shutil
 
 def load_test_data():
     # Load California Housing dataset
@@ -22,40 +23,49 @@ def main():
     # Load test data
     X_test, y_test = load_test_data()
 
-    # Load new model
-    new_model = joblib.load('best_rf_model.pkl')
+    # Get list of all model files in /models
+    model_dir = '/models'
+    model_files = [f for f in os.listdir(model_dir) if f.endswith('.pkl')]
+    
+    best_mse = float('inf')
+    best_model = None
+    best_model_filename = None
 
-    # Evaluate new model
-    new_mse, new_r2 = evaluate_model(new_model, X_test, y_test)
-    print(f"New Model - Mean Squared Error (MSE): {new_mse}")
-    print(f"New Model - R-squared (R²): {new_r2}")
+    # Evaluate all models in the /models directory
+    for model_filename in model_files:
+        model_path = os.path.join(model_dir, model_filename)
+        print(f"Evaluating model: {model_filename}")
+        
+        # Load the model
+        model = joblib.load(model_path)
+        
+        # Evaluate the model
+        mse, r2 = evaluate_model(model, X_test, y_test)
+        print(f"Model: {model_filename} - Mean Squared Error (MSE): {mse}")
+        print(f"Model: {model_filename} - R-squared (R²): {r2}")
+        
+        # Check if this model is the best so far
+        if mse < best_mse:
+            best_mse = mse
+            best_model = model
+            best_model_filename = model_filename
 
-    # Check if a previous model exists
-    previous_model_path = 'previous_rf_model.pkl'
-    if os.path.exists(previous_model_path):
-        # Load the previous model
-        previous_model = joblib.load(previous_model_path)
-
-        # Evaluate previous model
-        prev_mse, prev_r2 = evaluate_model(previous_model, X_test, y_test)
-        print(f"Previous Model - Mean Squared Error (MSE): {prev_mse}")
-        print(f"Previous Model - R-squared (R²): {prev_r2}")
-
-        # Compare the performance
-        if new_mse < prev_mse:
-            # Success
-            print("New model performs better than the previous model.")
-            joblib.dump(new_model, previous_model_path)
-            sys.exit(0)
-        else:
-            # Fail
-            print("Previous model performs better or is equal to the new model.")
-            sys.exit(1)
-    else:
-        # Success
-        print("No previous model found. Using the new model as the baseline.")
-        joblib.dump(new_model, previous_model_path) 
+    # If a best model is found, copy it to the root directory
+    if best_model:
+        print(f"The best model is: {best_model_filename} with MSE: {best_mse}")
+        best_model_path = os.path.join(model_dir, best_model_filename)
+        
+        # Copy the best model to the root directory
+        shutil.copy(best_model_path, '/best_model.pkl')
+        print(f"Best model saved to /best_model.pkl")
+        
+        # Optionally, you can also return the best model as needed:
+        # joblib.dump(best_model, '/best_model.pkl')
+        
         sys.exit(0)
+    else:
+        print("No models found in /models.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

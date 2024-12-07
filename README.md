@@ -9,6 +9,7 @@ Can use S3 instead which does not require any pods.
  <!-- DO ONCE JUST LIKE S3 TO SET UP ONLY -->
 - kubectl apply -f minio/minio-deployment.yaml
 - kubectl apply -f minio/minio-service.yaml
+- create bucket name models
 
 <!-- This is to access the client not server, since server is at a deployed pod -->
 

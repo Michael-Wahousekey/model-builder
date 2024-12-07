@@ -12,22 +12,37 @@ spec:
         command:
           - /bin/sh
           - -c
-            # python /scripts/aggregate_models.py /models/  # Aggregate models
 
             # change to secrets later so you dont expose the username and password
           - |
             apt-get update && \
             apt-get install curl -y && \
 
-          # This is to install client for console not server
+            # This is to install client for console not server
             curl -O https://dl.min.io/client/mc/release/linux-amd64/mc && \
             chmod +x mc && \
             mv mc /usr/local/bin/ && \
-          # Put this in secrets when pushing to github
+
+            # Set up a kube secret variable in pipeline
+            # the variable value will be put inside github secrets
+            # Change this line below to access that kube secret
             mc alias set myminio http://minio-service:9000 minioadmin minioadmin && \
 
-          # Turn this off since this is not deployment and just uploading the best model file
-            tail -f /dev/null
+            # Get the latest file which also means the best file from the bucket
+            # List files in the MinIO bucket and sort by timestamp
+            mc ls myminio/models --recursive | \
+                sort -k 1,1 -k 2,2 -k 3,3 | \
+                tail -n 1 | \
+                # Extract the file name (the 4th column)
+                awk '{print $NF}' | \
+                # Copy the latest file to the local /models/ directory
+                xargs -I {} mc cp myminio/models/{} /models/
+
+            # Test the models
+            python scripts/testModel.py
+
+            # Upload to minIO
+            mc cp ./best_model.pkl myminio/models
 
         volumeMounts:
         - mountPath: /scripts

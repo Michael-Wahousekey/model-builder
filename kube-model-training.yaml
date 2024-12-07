@@ -4,8 +4,8 @@ metadata:
   name: model-training-job
   
 spec:
-  parallelism: 4  # Number of parallel pods
-  completions: 4  # Total number of pods to complete
+  parallelism: 2  # Number of parallel pods
+  completions: 2  # Total number of pods to complete
 
   template:
     spec:
@@ -13,14 +13,13 @@ spec:
       - name: model-training
         image: mikewahousekey/ml-python-snapshot:latest
 
-        # Code used for deploying
+        # Code for running the script to build the model
         command:
           - /bin/sh
           - -c
-            # python /script/randomforest.py  # Run training script
-            # cp model.pkl /models/model_${HOSTNAME}.pkl  # Save model to PVC
+            # tail -f /dev/null
           - |
-            tail -f /dev/null
+            python /script/randomForest.py
 
 
         volumeMounts:
