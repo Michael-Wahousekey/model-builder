@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express-deployment
+
+spec:
+  # Restarts automatically if it dies
+  replicas: 1
+  selector:
+    matchLabels:
+      app: express-app
+
+  template:
+    metadata:
+      labels:
+        app: express-app
+    spec:
+      containers:
+      - name: express-container
+        image: node:20-alpine   # Node.js image to run the script
+
+        # Starting API server for client usage
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            # Copy the necessary files to the root directory
+            cp /script/clientAPI.js /;
+            cp /script/package.json /;
+            
+            # Install the dependencies
+            npm install;
+
+            # Start the Express app
+            node /clientAPI.js;
+
+        volumeMounts:
+        - mountPath: /script
+          name: script-volume             # Mount script from ConfigMap
+
+      volumes:                            # Access to script folder
+      - name: script-volume
+        configMap:
+          name: script-volume 
