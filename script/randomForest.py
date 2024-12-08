@@ -7,11 +7,14 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.datasets import fetch_california_housing
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Get the pod name from the environment variable
+# # Get the pod name from the environment variable
 pod_name = os.getenv("HOSTNAME")
 
+# # Define the path with the pod name as part of the file name
+model_filename = f"models/{pod_name}.pkl"
+
 # Define the path with the pod name as part of the file name
-model_filename = f"/models/model-{pod_name}.pkl"
+# model_filename = "model-pod_name.pkl"
 
 # Load California Housing dataset
 housing = fetch_california_housing()

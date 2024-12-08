@@ -27,31 +27,39 @@ spec:
             - name: MLFLOW_TRACKING_URI
               value: "http://mlflow-server:5000"
 
+            # MinIO S3 configuration
             - name: MLFLOW_ARTIFACT_URI
               value: "s3://minio-service/mlflow-artifacts"
             - name: AWS_ACCESS_KEY_ID
-              value: "minioadmin"
+              value: "minioadmin"  # MinIO's default access key
             - name: AWS_SECRET_ACCESS_KEY
-              value: "minioadmin"
+              value: "minioadmin"  # MinIO's default secret key
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: "http://minio-service:9000"  # MinIO endpoint URL (adjust if different)
 
-          # Command to rewrite the existing format
+          # Install boto3 after container starts
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - "/bin/sh"
+                  - "-c"
+                  - "pip install boto3"
+
+          # Command to run the MLflow server
           command: [
             "mlflow", "server",
             "--backend-store-uri", "/mlflow-server/mlruns",
-            "--default-artifact-root", "s3://minio-service/mlflow-artifacts",
+            "--default-artifact-root", "s3://mlflow-artifacts",
             "--host", "0.0.0.0",
             "--port", "5000"
           ]
-          
+
           volumeMounts:
-            # Name of the volume (can be anything as its a temp variable)
             - name: mlflow-storage
-              # folder in which it will save/load the data
               mountPath: /mlflow-server/mlruns
 
       volumes:
-        # Have to be the same name as being mounted
         - name: mlflow-storage
           persistentVolumeClaim:
             claimName: mlflow-pvc
-
