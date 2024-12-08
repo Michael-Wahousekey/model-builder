@@ -21,4 +21,4 @@ Can use S3 instead which does not require any pods.
     - mc cp file myminio/bucket
 
 ## Access Pods
-- kubectl exec -it pod-name -- /bin/bash                                                                       
+- kubectl exec -it pod-name -- /bin/bash              
