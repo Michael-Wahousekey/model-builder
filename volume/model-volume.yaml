@@ -1,0 +1,33 @@
+# persistent-volume.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: model-pv
+  
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    # Not persisten pathing for temporary only
+    path: /mnt/wsl/models
+    type: DirectoryOrCreate 
+
+---
+# persistent-volume-claim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-pvc
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi  # Requesting 1Gi of storage (matching PV capacity)
+  storageClassName: manual

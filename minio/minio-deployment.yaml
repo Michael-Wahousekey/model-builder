@@ -30,3 +30,12 @@ spec:
         ports:
           - containerPort: 9000
           - containerPort: 9900
+
+        volumeMounts:
+          - name: minio-storage
+            mountPath: /minio-storage  # Path inside container where MinIO will store data
+            
+      volumes:
+        - name: minio-storage
+          persistentVolumeClaim:
+            claimName: minio-pvc  # PVC that refers to the PersistentVolume

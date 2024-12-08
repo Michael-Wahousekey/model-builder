@@ -1,0 +1,31 @@
+# persistent-volume.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mlflow-pv
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    # Using the Docker volume path for MLflow data
+    path: /var/lib/docker/volumes/mlflow-volume/_data
+    type: DirectoryOrCreate
+
+---
+# persistent-volume-claim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi  # Requesting 1Gi of storage (matching PV capacity)
+  storageClassName: manual
