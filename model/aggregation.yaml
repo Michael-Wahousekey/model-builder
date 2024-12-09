@@ -12,8 +12,9 @@ spec:
         command:
           - /bin/sh
           - -c
-
             # change to secrets later so you dont expose the username and password
+            
+        args:
           - |
             apt-get update && \
             apt-get install curl -y && \

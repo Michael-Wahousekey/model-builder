@@ -7,8 +7,8 @@ on:
       - master  # Trigger pipeline on push to 'main' branch
 
 jobs:
-  # Step 1: Setup Context
-  setup:
+  # Step 1: Get Latest Repository
+  checkout:
     runs-on: self-hosted
     steps:
       - name: Checkout repository
@@ -18,31 +18,18 @@ jobs:
       # - name: Set up Kubernetes context
       #   run: |
       #     echo $"{{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-      #     kubectl config view --raw
-
-      # This will only be in local environment
-      # Switch from volume to AWS Elastic Block Storage or similar if cloud
-      - name: Create Volume for minio
-        run: docker volume create minio-volume
-      - name: Create Volume for mlflow
-        run: docker volume create mlflow-volume
-
-      - name: Create PV and PVC for models 
-        run: kubectl apply -f volume/model-volume.yaml
-
-      - name: Create Persistent PV and PVC for minio
-        run: kubectl apply -f volume/minio-volume.yaml
-
-      - name: Create Persistent PV and PVC for mlflow
-        run: kubectl apply -f volume/mlflow-volume.yaml        
+      #     kubectl config view --raw   
       
   # Step 2: Create ConfigMap for scripts
-  create-configmap:
+  create-model-volume:
     runs-on: self-hosted
-    needs: setup  # This job runs after the setup job
+    needs: checkout  # This job runs after the setup job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Create PV and PVC for models 
+        run: kubectl apply -f model/volume.yaml  
 
       # kubectl create configmap script-volume --from-file=script/ --dry-run=client -o yaml | kubectl apply -f -
       - name: Create ConfigMap for model training script (randomforest.py)
@@ -52,41 +39,11 @@ jobs:
           } else {
               Write-Output "ConfigMap 'script-volume' already exists. Skipping creation."
           }
-  
-  # Step 3 Alt: Centralized Artifact
-  # Not really needed since this is just a one time thing hence not very efficient use of resource allocation
-  # You can if you want to create a versioning bucket i guess??
-  # If decide to automate, integrate within docker-image pipeline and rename to model-depenency-pipeline
-  # create-artifact:
-  #   runs-on: self-hosted
-  #   needs: setup
-  #   steps:
-  #     - name: Create centralize artifact (minIO) deployment
-  #       run: kubectl apply -f minio/minio-deployment.yaml
-
-  #     - name: Create service for localmachine and cluster access
-  #       run: kubectl apply -f minio/minio-service.yaml
-
-  #       Create 2 buckets, models, mlflow-artifacts
-  #     - name: Create bucket
-  #       run: mc mb models mlflow-artifacts 
-  
-  # Step 3 Alt 2: Setup MLflow Server
-  # Same explanation as minio
-  # create-artifact:
-  #   runs-on: self-hosted
-  #   needs: setup
-  #   steps:
-  #     - name: Create mlflow server deployment
-  #       run: kubectl apply -f mlflow/mlflow-deployment.yaml
-
-  #     - name: Create service for localmachine and cluster access
-        # run: kubectl apply -f mlflow/mlflow-service.yaml
 
   # Step 3: Function Testing
   function-testing:
     runs-on: self-hosted
-    needs: create-configmap
+    needs: create-model-volume
     steps:
       - name: Testing
         run: echo Testing
@@ -97,7 +54,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Apply Job 1 (Model Training)
-        run: kubectl apply -f kube-model-training.yaml
+        run: kubectl apply -f ./model/training.yaml
 
       - name: Wait for Training Job to Complete
         run: |
@@ -110,7 +67,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Apply Job 2 (Model Aggregation)
-        run: kubectl apply -f kube-model-aggregation.yaml
+        run: kubectl apply -f ./model/aggregation.yaml
 
       - name: Waiting for testing and deployment
         run: |
@@ -134,13 +91,13 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Delete model-training-job
-        run: kubectl delete -f kube-model-training.yaml
+        run: kubectl delete -f ./model/training.yaml
 
       - name: Delete model-aggregation-job
-        run: kubectl delete -f kube-model-aggregation.yaml
+        run: kubectl delete -f ./model/aggregation.yaml
       
       - name: Delete model's volume
-        run: kubectl delete -f ./volume/model-volume.yaml
+        run: kubectl delete -f ./model/volume.yaml
 
       - name: Delete script-volume (configmap)
         run: kubectl delete configmap script-volume
