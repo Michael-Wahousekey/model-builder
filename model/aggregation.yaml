@@ -33,9 +33,7 @@ spec:
             mc cp models/upload/* myminio/models
 
             rm -rf /models/*
-
-            tail -f /dev/null
-
+            
         volumeMounts:
         - mountPath: /scripts
           name: script-volume             # Mount script from ConfigMap
