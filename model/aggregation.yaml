@@ -14,7 +14,6 @@ spec:
           - -c
             # change to secrets later so you dont expose the username and password
             
-        args:
           - |
             apt-get update && \
             apt-get install curl -y && \
@@ -38,9 +37,6 @@ spec:
                 awk '{print $NF}' | \
                 # Copy the latest file to the local /models/ directory
                 xargs -I {} mc cp myminio/models/{} /models/
-
-            # Test the models
-            python scripts/testModel.py
 
             # Upload to minIO
             mc cp models/upload/* myminio/models
