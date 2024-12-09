@@ -9,7 +9,7 @@ on:
 jobs:
   # Step 1: Setup Context
   setup:
-    runs-on: [self-hosted, ML-Pipeline, windows, x64]
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
       
   # Step 2: Create ConfigMap for scripts
   create-configmap:
-    runs-on: [self-hosted, ML-Pipeline, windows, x64]
+    runs-on: self-hosted
     needs: setup  # This job runs after the setup job
     steps:
       - name: Checkout repository
@@ -58,7 +58,7 @@ jobs:
   # You can if you want to create a versioning bucket i guess??
   # If decide to automate, integrate within docker-image pipeline and rename to model-depenency-pipeline
   # create-artifact:
-  #   runs-on: [self-hosted, ML-Pipeline, windows, x64]
+  #   runs-on: self-hosted
   #   needs: setup
   #   steps:
   #     - name: Create centralize artifact (minIO) deployment
@@ -74,7 +74,7 @@ jobs:
   # Step 3 Alt 2: Setup MLflow Server
   # Same explanation as minio
   # create-artifact:
-  #   runs-on: [self-hosted, ML-Pipeline, windows, x64]
+  #   runs-on: self-hosted
   #   needs: setup
   #   steps:
   #     - name: Create mlflow server deployment
@@ -85,7 +85,7 @@ jobs:
 
   # Step 3: Function Testing
   function-testing:
-    runs-on: [self-hosted, ML-Pipeline, windows, x64]
+    runs-on: self-hosted
     needs: create-configmap
     steps:
       - name: Testing
@@ -94,7 +94,7 @@ jobs:
   # Step 4: Job 1 (Model Training)
   model-training:
     needs: function-testing  # This job runs after the Function Testing job
-    runs-on: [self-hosted, ML-Pipeline, windows, x64]
+    runs-on: self-hosted
     steps:
       - name: Apply Job 1 (Model Training)
         run: kubectl apply -f kube-model-training.yaml
@@ -107,7 +107,7 @@ jobs:
   # Step 5: Job 2 (Model Aggregation [Testing and Uploading to Centralized Artifact])
   model-aggregation:
     needs: model-training  # This job runs after Job 1 finishes
-    runs-on: [self-hosted, ML-Pipeline, windows, x64]
+    runs-on: self-hosted
     steps:
       - name: Apply Job 2 (Model Aggregation)
         run: kubectl apply -f kube-model-aggregation.yaml
@@ -120,7 +120,7 @@ jobs:
   # Step 6: Job 3 (Model Deployment [Model Prediction and Drift Prediction])
   model-deployment:
     needs: model-aggregation  # This job runs after Job 2 finishes
-    runs-on: [self-hosted, ML-Pipeline, windows, x64]
+    runs-on: self-hosted
     steps:
       - name: Apply Job 3 (Model Deployment)
         run: kubectl apply -f ./deployment/kube-deployment.yaml
@@ -131,7 +131,7 @@ jobs:
   # Step 7: Job Cleanup to remove completed jobs, configmap, and pv/c
   job-cleanup:
     needs: model-deployment
-    runs-on: [self-hosted, ML-Pipeline, windows, x64]
+    runs-on: self-hosted
     steps:
       - name: Delete model-training-job
         run: kubectl delete -f kube-model-training.yaml

@@ -3,6 +3,8 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: model-pv
+  labels:
+    app: model
   
 spec:
   capacity:
@@ -31,3 +33,6 @@ spec:
     requests:
       storage: 1Gi  # Requesting 1Gi of storage (matching PV capacity)
   storageClassName: manual
+  selector:
+    matchLabels:
+      app: model
