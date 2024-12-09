@@ -26,6 +26,13 @@ def main():
     # Get list of all model files in /models
     model_dir = '/models'
     model_files = [f for f in os.listdir(model_dir) if f.endswith('.pkl')]
+
+    # Check if the directory exists, and create it if it doesn't
+    if not os.path.exists(f"{model_dir}/upload"):
+        os.makedirs(f"{model_dir}/upload")
+        print(f"Directory '{model_dir}/upload' created.")
+    else:
+        print(f"Directory '{model_dir}/upload' already exists.")
     
     best_mse = float('inf')
     best_model = None
@@ -56,7 +63,7 @@ def main():
         best_model_path = os.path.join(model_dir, best_model_filename)
         
         # Copy the best model to the root directory
-        shutil.copy(best_model_path, f"upload-model/{best_model_path}")
+        shutil.copy(best_model_path, f"{model_dir}/upload/{best_model_filename}")
         print(f"Best model saved")
         
         # Optionally, you can also return the best model as needed:
