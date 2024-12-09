@@ -24,7 +24,6 @@ jobs:
       # Switch from volume to AWS Elastic Block Storage or similar if cloud
       - name: Create Volume for minio
         run: docker volume create minio-volume
-
       - name: Create Volume for mlflow
         run: docker volume create mlflow-volume
 
@@ -73,9 +72,7 @@ jobs:
   #       run: mc mb models mlflow-artifacts 
   
   # Step 3 Alt 2: Setup MLflow Server
-  # Not really needed since this is just a one time thing hence not very efficient use of resource allocation
-  # You can if you want to create a versioning bucket i guess??
-  # If decide to automate, integrate within docker-image pipeline and rename to model-depenency-pipeline
+  # Same explanation as minio
   # create-artifact:
   #   runs-on: self-hosted
   #   needs: setup
@@ -142,11 +139,8 @@ jobs:
       - name: Delete model-aggregation-job
         run: kubectl delete -f kube-model-aggregation.yaml
       
-      - name: Delete model-pvc
-        run: kubectl delete -f kube-pvc.yaml
-
-      - name: Delete model-pv
-        run: kubectl delete -f kube-pv.yaml
+      - name: Delete model's volume
+        run: kubectl delete -f ./volume/model-volume.yaml
 
       - name: Delete script-volume (configmap)
         run: kubectl delete configmap script-volume
