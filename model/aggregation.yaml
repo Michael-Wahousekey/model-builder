@@ -3,7 +3,6 @@ kind: Job
 metadata:
   name: model-aggregation-job
 
-# Add secrets for kubernetes
 spec:
   template:
     spec:
