@@ -45,6 +45,9 @@ spec:
             # Upload to minIO
             mc cp models/upload/* myminio/models
 
+            # Clean out volume
+            rm -rf /models/*
+
         volumeMounts:
         - mountPath: /scripts
           name: script-volume             # Mount script from ConfigMap
