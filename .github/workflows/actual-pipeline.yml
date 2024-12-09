@@ -47,7 +47,12 @@ jobs:
 
       # kubectl create configmap script-volume --from-file=script/ --dry-run=client -o yaml | kubectl apply -f -
       - name: Create ConfigMap for model training script (randomforest.py)
-        run: kubectl create configmap script-volume --from-file=script/
+        run: |
+          if ! kubectl get configmap script-volume &>/dev/null; then
+            kubectl create configmap script-volume --from-file=script/
+          else
+            echo "ConfigMap 'script-volume' already exists. Skipping creation."
+          fi      
   
   # Step 3 Alt: Centralized Artifact
   # Not really needed since this is just a one time thing hence not very efficient use of resource allocation
@@ -67,6 +72,19 @@ jobs:
   #     - name: Create bucket
   #       run: mc mb models mlflow-artifacts 
   
+  # Step 3 Alt 2: Setup MLflow Server
+  # Not really needed since this is just a one time thing hence not very efficient use of resource allocation
+  # You can if you want to create a versioning bucket i guess??
+  # If decide to automate, integrate within docker-image pipeline and rename to model-depenency-pipeline
+  # create-artifact:
+  #   runs-on: self-hosted
+  #   needs: setup
+  #   steps:
+  #     - name: Create mlflow server deployment
+  #       run: kubectl apply -f mlflow/mlflow-deployment.yaml
+
+  #     - name: Create service for localmachine and cluster access
+        # run: kubectl apply -f mlflow/mlflow-service.yaml
 
   # Step 3: Function Testing
   function-testing:
