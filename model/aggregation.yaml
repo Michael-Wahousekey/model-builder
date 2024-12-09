@@ -28,11 +28,13 @@ spec:
                 awk '{print $NF}' | \
                 xargs -I {} mc cp myminio/models/{} /models/
 
-            python script/testModel.py
+            python scripts/testModel.py
 
             mc cp models/upload/* myminio/models
 
             rm -rf /models/*
+
+            tail -f /dev/null
 
         volumeMounts:
         - mountPath: /scripts
