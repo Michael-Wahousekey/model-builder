@@ -48,11 +48,11 @@ jobs:
       # kubectl create configmap script-volume --from-file=script/ --dry-run=client -o yaml | kubectl apply -f -
       - name: Create ConfigMap for model training script (randomforest.py)
         run: |
-          if ! kubectl get configmap script-volume &>/dev/null; then
-            kubectl create configmap script-volume --from-file=script/
-          else
-            echo "ConfigMap 'script-volume' already exists. Skipping creation."
-          fi      
+          if (-not (kubectl get configmap script-volume -o name | Select-String "script-volume")) {
+              kubectl create configmap script-volume --from-file=script/
+          } else {
+              Write-Output "ConfigMap 'script-volume' already exists. Skipping creation."
+          }
   
   # Step 3 Alt: Centralized Artifact
   # Not really needed since this is just a one time thing hence not very efficient use of resource allocation
