@@ -4,7 +4,7 @@ name: Model Training and Aggregation Pipeline
 on:
   push:
     branches:
-      - main  # Trigger pipeline on push to 'main' branch
+      - master  # Trigger pipeline on push to 'main' branch
 
 jobs:
   # Step 1: Setup Context
@@ -62,6 +62,11 @@ jobs:
 
   #     - name: Create service for localmachine and cluster access
   #       run: kubectl apply -f minio/minio-service.yaml
+
+  #       Create 2 buckets, models, mlflow-artifacts
+  #     - name: Create bucket
+  #       run: mc mb models mlflow-artifacts 
+  
 
   # Step 3: Function Testing
   function-testing:
