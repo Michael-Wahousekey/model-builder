@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.datasets import fetch_california_housing
 from sklearn.metrics import mean_squared_error, r2_score
+from datetime import datetime
 
 
 # Set credentials
@@ -14,12 +15,14 @@ from sklearn.metrics import mean_squared_error, r2_score
 os.environ['AWS_ACCESS_KEY_ID'] = 'minioadmin'  # Your MinIO access key
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'minioadmin'  # Your MinIO secret key
 os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://minio-service:9000'  # MinIO endpoint
+# os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:30000'  # MinIO endpoint
 
 # Set the artifact URI to point to MinIO (S3 bucket style URI)
 os.environ["MLFLOW_ARTIFACT_URI"] = "s3://mlflow-artifacts"
 
 # Set the MLflow tracking URI
 mlflow.set_tracking_uri("http://mlflow-server:5000")
+# mlflow.set_tracking_uri("http://localhost:30005")
 
 # Set the experiment to use
 mlflow.set_experiment("RandomForest")
@@ -52,8 +55,12 @@ param_grid = {
 # Use GridSearchCV for hyperparameter tuning
 grid_search = GridSearchCV(estimator=rf_model, param_grid=param_grid, cv=3, n_jobs=-1, verbose=2)
 
+# Versioning run name
+dateNow = datetime.now().strftime("%Y.%m.%d.%H.%M")
+run_name = f"{pod_name}-V{dateNow}"
+
 # Start an MLflow run
-with mlflow.start_run():
+with mlflow.start_run(run_name=run_name):
 
     # Log parameters (hyperparameters)
     mlflow.log_params(param_grid)
@@ -87,9 +94,6 @@ with mlflow.start_run():
     # Save the best model to a file
     joblib.dump(best_rf_model, model_filename)
     print("Best model saved")
-
-    # Log model
-    mlflow.log_model(model_filename)
 
     # Save to artifact
     mlflow.log_artifact(model_filename)
