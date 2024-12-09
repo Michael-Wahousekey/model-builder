@@ -38,6 +38,8 @@ spec:
                 # Copy the latest file to the local /models/ directory
                 xargs -I {} mc cp myminio/models/{} /models/
 
+            python script/testModel.py
+
             # Upload to minIO
             mc cp models/upload/* myminio/models
 
