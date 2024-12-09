@@ -56,8 +56,8 @@ def main():
         best_model_path = os.path.join(model_dir, best_model_filename)
         
         # Copy the best model to the root directory
-        shutil.copy(best_model_path, '/best_model.pkl')
-        print(f"Best model saved to /best_model.pkl")
+        shutil.copy(best_model_path, f"upload-model/{best_model_path}")
+        print(f"Best model saved")
         
         # Optionally, you can also return the best model as needed:
         # joblib.dump(best_model, '/best_model.pkl')

@@ -164,7 +164,7 @@ cython_debug/
 
 
 # Ignore pipeline
-.github/
+# .github/
 
 # Ignore tools
 tools/

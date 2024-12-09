@@ -1,0 +1,130 @@
+# pipeline.yml
+name: Model Training and Aggregation Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger pipeline on push to 'main' branch
+
+jobs:
+  # Step 1: Setup Context
+  setup:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # This is only for Cloud kubernetes services
+      # - name: Set up Kubernetes context
+      #   run: |
+      #     echo $"{{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+      #     kubectl config view --raw
+
+      # This will only be in local environment
+      # Switch from volume to AWS Elastic Block Storage or similar if cloud
+      - name: Create Volume for minio
+        run: docker volume create minio-volume
+
+      - name: Create Volume for mlflow
+        run: docker volume create mlflow-volume
+
+      - name: Create PV and PVC for models 
+        run: kubectl apply -f volume/model-volume.yaml
+
+      - name: Create Persistent PV and PVC for minio
+        run: kubectl apply -f volume/minio-volume.yaml
+
+      - name: Create Persistent PV and PVC for mlflow
+        run: kubectl apply -f volume/mlflow-volume.yaml        
+      
+  # Step 2: Create ConfigMap for scripts
+  create-configmap:
+    runs-on: self-hosted
+    needs: setup  # This job runs after the setup job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # kubectl create configmap script-volume --from-file=script/ --dry-run=client -o yaml | kubectl apply -f -
+      - name: Create ConfigMap for model training script (randomforest.py)
+        run: kubectl create configmap script-volume --from-file=script/
+  
+  # Step 3 Alt: Centralized Artifact
+  # Not really needed since this is just a one time thing hence not very efficient use of resource allocation
+  # You can if you want to create a versioning bucket i guess??
+  # If decide to automate, integrate within docker-image pipeline and rename to model-depenency-pipeline
+  # create-artifact:
+  #   runs-on: self-hosted
+  #   needs: setup
+  #   steps:
+  #     - name: Create centralize artifact (minIO) deployment
+  #       run: kubectl apply -f minio/minio-deployment.yaml
+
+  #     - name: Create service for localmachine and cluster access
+  #       run: kubectl apply -f minio/minio-service.yaml
+
+  # Step 3: Function Testing
+  function-testing:
+    runs-on: self-hosted
+    needs: create-configmap
+    steps:
+      - name: Testing
+        run: echo Testing
+
+  # Step 4: Job 1 (Model Training)
+  model-training:
+    needs: function-testing  # This job runs after the Function Testing job
+    runs-on: self-hosted
+    steps:
+      - name: Apply Job 1 (Model Training)
+        run: kubectl apply -f kube-model-training.yaml
+
+      - name: Wait for Training Job to Complete
+        run: |
+          kubectl wait --for=condition=complete --timeout=600s job/model-training-job
+        # This will wait until the job completes successfully, with a 10-minute timeout
+
+  # Step 5: Job 2 (Model Aggregation [Testing and Uploading to Centralized Artifact])
+  model-aggregation:
+    needs: model-training  # This job runs after Job 1 finishes
+    runs-on: self-hosted
+    steps:
+      - name: Apply Job 2 (Model Aggregation)
+        run: kubectl apply -f kube-model-aggregation.yaml
+
+      - name: Waiting for testing and deployment
+        run: |
+          kubectl wait --for=condition=complete --timeout=600s job/model-aggregation-job
+        # This will wait until the job completes successfully, with a 10-minute timeout
+
+  # Step 6: Job 3 (Model Deployment [Model Prediction and Drift Prediction])
+  model-deployment:
+    needs: model-aggregation  # This job runs after Job 2 finishes
+    runs-on: self-hosted
+    steps:
+      - name: Apply Job 3 (Model Deployment)
+        run: kubectl apply -f ./deployment/kube-deployment.yaml
+
+      - name: Apply service to forward port to localhost
+        run: kubectl apply -f ./deployment/kube-service.yaml
+
+  # Step 7: Job Cleanup to remove completed jobs, configmap, and pv/c
+  job-cleanup:
+    needs: model-deployment
+    runs-on: self-hosted
+    steps:
+      - name: Delete model-training-job
+        run: kubectl delete -f kube-model-training.yaml
+
+      - name: Delete model-aggregation-job
+        run: kubectl delete -f kube-model-aggregation.yaml
+      
+      - name: Delete model-pvc
+        run: kubectl delete -f kube-pvc.yaml
+
+      - name: Delete model-pv
+        run: kubectl delete -f kube-pv.yaml
+
+      - name: Delete script-volume (configmap)
+        run: kubectl delete configmap script-volume
+

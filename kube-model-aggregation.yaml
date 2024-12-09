@@ -42,7 +42,7 @@ spec:
             python scripts/testModel.py
 
             # Upload to minIO
-            mc cp ./best_model.pkl myminio/models
+            mc cp upload-model/* myminio/models
 
         volumeMounts:
         - mountPath: /scripts
