@@ -88,5 +88,9 @@ with mlflow.start_run():
     joblib.dump(best_rf_model, model_filename)
     print("Best model saved")
 
+    # Log model
+    mlflow.log_model(model_filename)
+
+    # Save to artifact
     mlflow.log_artifact(model_filename)
     print(f"Best model saved and logged as artifact: {model_filename}")
