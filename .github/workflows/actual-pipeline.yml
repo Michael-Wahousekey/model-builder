@@ -74,20 +74,9 @@ jobs:
           kubectl wait --for=condition=complete --timeout=600s job/model-aggregation-job
         # This will wait until the job completes successfully, with a 10-minute timeout
 
-  # Step 6: Job 3 (Model Deployment [Model Prediction and Drift Prediction])
-  model-deployment:
-    needs: model-aggregation  # This job runs after Job 2 finishes
-    runs-on: self-hosted
-    steps:
-      - name: Apply Job 3 (Model Deployment)
-        run: kubectl apply -f ./deployment/kube-deployment.yaml
-
-      - name: Apply service to forward port to localhost
-        run: kubectl apply -f ./deployment/kube-service.yaml
-
-  # Step 7: Job Cleanup to remove completed jobs, configmap, and pv/c
+  # Step 6: Job Cleanup to remove completed jobs, configmap, and pv/c
   job-cleanup:
-    needs: model-deployment
+    needs: model-aggregation
     runs-on: self-hosted
     steps:
       - name: Delete model-training-job
