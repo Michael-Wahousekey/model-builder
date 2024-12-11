@@ -27,11 +27,11 @@ spec:
   
         resources:
           requests:
-            cpu: "5m"
-            memory: "100Mi"
+            cpu: "256m"
+            memory: "1256Mi"
           limits:
-            cpu: "20m"
-            memory: "120Mi"
+            cpu: "512m"
+            memory: "512Mi"
 
         volumeMounts:
         - mountPath: /script
