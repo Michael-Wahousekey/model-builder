@@ -8,14 +8,15 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.datasets import fetch_california_housing
 from sklearn.metrics import mean_squared_error, r2_score
 from datetime import datetime
+import random
 
 
 # Set credentials
 # Set it up in the env of the pods "kube-model-training" instead of the code since this is for testing only
 os.environ['AWS_ACCESS_KEY_ID'] = 'minioadmin'  # Your MinIO access key
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'minioadmin'  # Your MinIO secret key
-os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://minio-service:9000'  # MinIO endpoint
-# os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:9000'  # MinIO endpoint
+os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://minio-service:9000'
+# os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:9000'
 
 # Set the artifact URI to point to MinIO (S3 bucket style URI)
 os.environ["MLFLOW_ARTIFACT_URI"] = "s3://mlflow-artifacts"
@@ -45,11 +46,18 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 rf_model = RandomForestRegressor(random_state=42)
 
 # Define hyperparameter ranges
+# param_grid = {
+#     'n_estimators': [10, 50, 100],
+#     'max_depth': [5, 10, 20],
+#     'min_samples_split': [2, 5, 10],
+#     'min_samples_leaf': [1, 2, 4]
+# }
+
 param_grid = {
-    'n_estimators': [10, 50, 100],
-    'max_depth': [5, 10, 20],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4]
+    'n_estimators': [random.randint(1, 10), random.randint(25, 50), random.randint(75, 150)],
+    'max_depth': [random.randint(1, 5), random.randint(10, 15), random.randint(20, 25)],
+    'min_samples_split': [random.randint(1, 2), random.randint(5, 7), random.randint(10, 12)],
+    'min_samples_leaf': [1 , random.randint(2, 3), 4]
 }
 
 # Use GridSearchCV for hyperparameter tuning
