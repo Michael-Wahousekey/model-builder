@@ -16,3 +16,25 @@ param_grid = {
     - This means that the best model is uploaded
     - If the current model from minio is still the best then it will just upload that model
     - replacing the same model (essentially the same model file) (Can add script to ignore upload...)
+
+
+### Prediction Values
+```yaml
+MedInc: Median income in block group.
+HouseAge: Median house age in block group.
+AveRooms: Average number of rooms per household.
+AveOccup: Average number of occupants per household.
+Latitude: Latitude of the block group.
+Longitude: Longitude of the block group.
+Population: Total population in the block group.
+MedHouseVal: Median house value for households within the block group.
+```
+
+#### Results:
+```yaml
+{
+    "prediction": 4.232466666666668,
+    "drift_detected": false
+}
+```
+- Roughly Estimated: 4.23247 * $100,000 = $423,247
