@@ -15,14 +15,14 @@ from datetime import datetime
 os.environ['AWS_ACCESS_KEY_ID'] = 'minioadmin'  # Your MinIO access key
 os.environ['AWS_SECRET_ACCESS_KEY'] = 'minioadmin'  # Your MinIO secret key
 os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://minio-service:9000'  # MinIO endpoint
-# os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:30000'  # MinIO endpoint
+# os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://localhost:9000'  # MinIO endpoint
 
 # Set the artifact URI to point to MinIO (S3 bucket style URI)
 os.environ["MLFLOW_ARTIFACT_URI"] = "s3://mlflow-artifacts"
 
 # Set the MLflow tracking URI
 mlflow.set_tracking_uri("http://mlflow-server:5000")
-# mlflow.set_tracking_uri("http://localhost:30005")
+# mlflow.set_tracking_uri("http://localhost:5000")
 
 # Set the experiment to use
 mlflow.set_experiment("RandomForest")
@@ -35,8 +35,8 @@ model_filename = f"models/{pod_name}.pkl"
 
 # Load California Housing dataset
 housing = fetch_california_housing()
-X = housing.data[:50]  # Using 50 samples as per your toaster machine
-y = housing.target[:50]
+X = housing.data[:200]  # Using 50 samples as per your toaster machine
+y = housing.target[:200]
 
 # Split the data into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)

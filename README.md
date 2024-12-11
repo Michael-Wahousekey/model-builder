@@ -18,7 +18,4 @@ Can use S3 instead which does not require any pods.
     - https://dl.min.io/client/mc/release/windows-amd64/mc.exe
 
 - Upload file
-    - mc cp file myminio/bucket
-
-## Access Pods
-- kubectl exec -it pod-name -- /bin/bash              
+    - mc cp file myminio/bucket          

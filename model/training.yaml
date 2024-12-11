@@ -5,36 +5,71 @@ metadata:
   
 spec:
   parallelism: 2  # Number of parallel pods
-  completions: 2  # Total number of pods to complete
+  completions: 3  # Total number of pods to complete
 
   template:
     spec:
       containers:
       - name: model-training
         image: mikewahousekey/ml-python-snapshot:latest
+        
+        resizePolicy:
+        - resourceName: cpu
+          restartPolicy: NotRequired       # Resize CPU without restarting the container
+        - resourceName: memory
+          restartPolicy: RestartContainer   # Resize memory requires restarting the container
 
-        # Code for running the script to build the model
         command:
           - /bin/sh
           - -c
-            # tail -f /dev/null
           - |
             python /script/randomForest.py
-
+  
+        resources:
+          requests:
+            cpu: "5m"
+            memory: "100Mi"
+          limits:
+            cpu: "20m"
+            memory: "120Mi"
 
         volumeMounts:
         - mountPath: /script
-          name: script-volume             # Mount script from ConfigMap
+          name: script-volume             
         - mountPath: /models
-          name: model-volume              # Mount the PVC to save models
+          name: model-volume              
 
-      volumes:                            # Access to script folder
+      volumes:
       - name: script-volume
         configMap:
           name: script-volume 
 
-      - name: model-volume                # PVC to store models
+      - name: model-volume                
         persistentVolumeClaim:
           claimName: model-pvc
 
       restartPolicy: OnFailure
+
+---
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: model-training-job-vpa
+spec:
+  targetRef:
+    apiVersion: "batch/v1"
+    kind: Job
+    name: model-training-job
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: model-training
+      minAllowed:
+        cpu: "128m"
+        memory: "128Mi"
+      maxAllowed:
+        cpu: "1"
+        memory: "1Gi"
+      controlledResources: ["cpu", "memory"]
