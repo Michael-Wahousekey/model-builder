@@ -24,17 +24,16 @@ jobs:
         run: kubectl apply -f model/volume.yaml  
 
       - name: Setup Kubernetes Secret for docker image pull
-        run: 
-          |  
+        run: |
           if (-not (kubectl get secret regcred -o name | Select-String "regcred")) {
-            kubectl create secret docker-registry regcred \
-            --docker-server=https://index.docker.io/v1/ \
-            --docker-username=${{ secrets.DOCKER_USERNAME }} \
-            --docker-password=${{ secrets.DOCKER_TOKEN }}
+            kubectl create secret docker-registry regcred `
+              --docker-server=https://index.docker.io/v1/ `
+              --docker-username=${{ secrets.DOCKER_USERNAME }} `
+              --docker-password=${{ secrets.DOCKER_TOKEN }}
           } else {
             Write-Output "Secret 'regcred' already exists. Skipping creation."
           }
-
+      
       - name: Setup Kubernetes Secret for licensing
         run: | 
           if (-not (kubectl get secret postgres-secret -o name | Select-String "postgres-secret")) {
@@ -42,6 +41,7 @@ jobs:
           } else {
             Write-Output "Secret 'postgres-secret' already exists. Skipping creation."
           }
+      
       
 #     # kubectl create configmap script-volume --from-file=script/ --dry-run=client -o yaml | kubectl apply -f -
 #     - name: Create ConfigMap for model training script (randomforest.py)
