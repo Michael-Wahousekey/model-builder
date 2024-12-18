@@ -15,7 +15,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    # Not persisten pathing for temporary only
+    # Not persistent pathing for temporary only
     path: /mnt/wsl/models
     type: DirectoryOrCreate 
 

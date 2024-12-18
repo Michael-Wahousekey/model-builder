@@ -6,45 +6,40 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
-      - name: model-aggregation
+      - name: model-training
         image: mikewahousekey/ml-python-snapshot:latest
+        env:
+          - name: POSTGRES_TOKEN          
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_TOKEN
         command:
           - /bin/bash
           - -c
           - |
-            apt-get update && \
-            apt-get install curl -y && \
-
-            curl -O https://dl.min.io/client/mc/release/linux-amd64/mc && \
-            chmod +x mc && \
-            mv mc /usr/local/bin/ && \
-
             mc alias set myminio http://minio-service:9000 minioadmin minioadmin && \
 
             mc ls myminio/models --recursive | \
                 sort -k 1,1 -k 2,2 -k 3,3 | \
                 tail -n 1 | \
                 awk '{print $NF}' | \
-                xargs -I {} mc cp myminio/models/{} /models/
+                xargs -I {} mc cp myminio/models/{} /app/models/
 
-            python scripts/testModel.py
+            python /app/testModel/testModel.py
 
-            mc cp models/upload/* myminio/models
+            mc cp /app/models/upload/* myminio/models
 
-            rm -rf /models/*
+            rm -rf /app/models/*
             
         volumeMounts:
-        - mountPath: /scripts
-          name: script-volume             # Mount script from ConfigMap
-        - mountPath: /models
+        - mountPath: /app/models
           name: model-volume              # Mount the PVC to access models
 
       volumes:                            
-      - name: script-volume               # Access for script folder
-        configMap:
-          name: script-volume
-          
       - name: model-volume                # PVC to access to models
         persistentVolumeClaim:
           claimName: model-pvc

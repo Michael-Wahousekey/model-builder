@@ -4,14 +4,22 @@ metadata:
   name: model-training-job
   
 spec:
-  parallelism: 2  # Number of parallel pods
-  completions: 3  # Total number of pods to complete
+  # parallelism: 2  # Number of parallel pods
+  # completions: 2  # Total number of pods to complete
 
   template:
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: model-training
         image: mikewahousekey/ml-python-snapshot:latest
+        env:
+          - name: POSTGRES_TOKEN          
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_TOKEN
         
         resizePolicy:
         - resourceName: cpu
@@ -23,7 +31,7 @@ spec:
           - /bin/sh
           - -c
           - |
-            python /script/randomForest.py
+            python randomForest.py
   
         resources:
           requests:
@@ -33,17 +41,11 @@ spec:
             cpu: "512m"
             memory: "512Mi"
 
-        volumeMounts:
-        - mountPath: /script
-          name: script-volume             
-        - mountPath: /models
+        volumeMounts:         
+        - mountPath: /app/models
           name: model-volume              
 
       volumes:
-      - name: script-volume
-        configMap:
-          name: script-volume 
-
       - name: model-volume                
         persistentVolumeClaim:
           claimName: model-pvc
