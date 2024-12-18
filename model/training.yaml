@@ -4,8 +4,8 @@ metadata:
   name: model-training-job
   
 spec:
-  # parallelism: 2  # Number of parallel pods
-  # completions: 2  # Total number of pods to complete
+  parallelism: 2  # Number of parallel pods
+  completions: 2  # Total number of pods to complete
 
   template:
     spec:
@@ -31,7 +31,7 @@ spec:
           - /bin/sh
           - -c
           - |
-            python randomForest.py
+            python randomForest/randomForest.py
   
         resources:
           requests:

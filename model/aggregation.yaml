@@ -29,7 +29,7 @@ spec:
                 awk '{print $NF}' | \
                 xargs -I {} mc cp myminio/models/{} /app/models/
 
-            python /app/testModel/testModel.py
+            python testModel/testModel.py
 
             mc cp /app/models/upload/* myminio/models
 
