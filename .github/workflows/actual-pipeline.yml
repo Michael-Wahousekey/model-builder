@@ -71,7 +71,7 @@ jobs:
 
       - name: Wait for Training Job to Complete
         run: |
-          kubectl wait --for=condition=complete --timeout=600s job/model-training-job
+          kubectl wait --for=condition=complete --timeout=600s job/model-training-job -n dev
         # This will wait until the job completes successfully, with a 10-minute timeout
 
   # Step 4: Job 2 (Model Aggregation [Testing and Uploading to Centralized Artifact])
@@ -84,7 +84,7 @@ jobs:
 
       - name: Waiting for testing and deployment
         run: |
-          kubectl wait --for=condition=complete --timeout=600s job/model-aggregation-job
+          kubectl wait --for=condition=complete --timeout=600s job/model-aggregation-job -n dev
         # This will wait until the job completes successfully, with a 10-minute timeout
 
   # Step 5: Job Cleanup to remove completed jobs, configmap, and pv/c
@@ -99,7 +99,7 @@ jobs:
         run: kubectl delete -f ./model/aggregation.yaml
       
       - name: Delete model's volume
-        run: kubectl delete -f ./model/volume.yaml
+        run: kubectl delete -f ./model/volume.yaml -n dev
 
       # - name: Delete script-volume (configmap)
       #   run: kubectl delete configmap script-volume
