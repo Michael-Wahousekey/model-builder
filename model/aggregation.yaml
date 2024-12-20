@@ -2,10 +2,12 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: model-aggregation-job
+  namespace: dev
 
 spec:
   template:
     spec:
+      serviceAccountName: myapp
       imagePullSecrets:
       - name: regcred
       containers:
@@ -21,7 +23,7 @@ spec:
           - /bin/bash
           - -c
           - |
-            mc alias set myminio http://minio-service:9000 minioadmin minioadmin && \
+            mc alias set myminio http://minio-service.default.svc.cluster.local:9000 minioadmin minioadmin && \
 
             mc ls myminio/models --recursive | \
                 sort -k 1,1 -k 2,2 -k 3,3 | \

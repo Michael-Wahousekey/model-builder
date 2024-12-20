@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: model-training-job
+  namespace: dev
   
 spec:
   parallelism: 2  # Number of parallel pods
@@ -9,6 +10,7 @@ spec:
 
   template:
     spec:
+      serviceAccountName: myapp
       imagePullSecrets:
       - name: regcred
       containers:
@@ -32,6 +34,7 @@ spec:
           - -c
           - |
             python randomForest/randomForest.py
+            tail -f /dev/null
   
         resources:
           requests:
@@ -58,6 +61,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: model-training-job-vpa
+  namespace: dev
 spec:
   targetRef:
     apiVersion: "batch/v1"

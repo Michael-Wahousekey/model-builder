@@ -21,7 +21,7 @@ jobs:
       #     kubectl config view --raw   
 
       - name: Create PV and PVC for models 
-        run: kubectl apply -f model/volume.yaml  
+        run: kubectl apply -f model/volume.yaml -n dev
 
       - name: Setup Kubernetes Secret for docker image pull
         run: |
@@ -29,7 +29,8 @@ jobs:
             kubectl create secret docker-registry regcred `
               --docker-server=https://index.docker.io/v1/ `
               --docker-username=${{ secrets.DOCKER_USERNAME }} `
-              --docker-password=${{ secrets.DOCKER_TOKEN }}
+              --docker-password=${{ secrets.DOCKER_TOKEN }} `
+              -n dev
           } else {
             Write-Output "Secret 'regcred' already exists. Skipping creation."
           }
@@ -37,7 +38,7 @@ jobs:
       - name: Setup Kubernetes Secret for licensing
         run: | 
           if (-not (kubectl get secret postgres-secret -o name | Select-String "postgres-secret")) {
-            kubectl create secret generic postgres-secret --from-literal=POSTGRES_TOKEN=${{ secrets.LICENSE_TOKEN }}
+            kubectl create secret generic postgres-secret --from-literal=POSTGRES_TOKEN=${{ secrets.LICENSE_TOKEN }} -n dev
           } else {
             Write-Output "Secret 'postgres-secret' already exists. Skipping creation."
           }
