@@ -34,7 +34,6 @@ spec:
           - -c
           - |
             python randomForest/randomForest.py
-            tail -f /dev/null
   
         resources:
           requests:
